@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DBM Microscopy System Selector</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #007A87;
+    --teal-light: #009aaa;
+    --teal-dim: #e6f4f6;
+    --dark: #1a2630;
+    --mid: #4a5c6a;
+    --light: #f4f8f9;
+    --white: #ffffff;
+    --accent: #e05c2a;
+    --border: #d0e4e8;
+    --radius: 10px;
+    --shadow: 0 2px 16px rgba(0,122,135,0.10);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--light);
+    color: var(--dark);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--teal);
+    color: white;
+    padding: 28px 36px 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    right: -60px; top: -60px;
+    width: 260px; height: 260px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.07);
+    pointer-events: none;
+  }
+  .header-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-bottom: 6px;
+  }
+  .header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .header p {
+    font-size: 14px;
+    opacity: 0.82;
+    max-width: 520px;
+    line-height: 1.5;
+  }
+
+  /* ── Progress bar ── */
+  .progress-bar {
+    background: rgba(255,255,255,0.2);
+    height: 4px;
+    border-radius: 2px;
+    margin-top: 18px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: white;
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* ── Main content ── */
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* ── Step card ── */
+  .step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .step.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-number {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+  }
+  .step-question {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--dark);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .step-hint {
+    font-size: 13px;
+    color: var(--mid);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* ── Options grid ── */
+  .options {
+    display: grid;
+    gap: 10px;
+  }
+  .options.cols-2 { grid-template-columns: 1fr 1fr; }
+
+  .option {
+    background: var(--white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+  }
+  .option:hover {
+    border-color: var(--teal);
+    box-shadow: var(--shadow);
+    background: var(--teal-dim);
+  }
+  .option.selected {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+    box-shadow: 0 0 0 3px rgba(0,122,135,0.15);
+  }
+  .option-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .option-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 2px;
+  }
+  .option-text span {
+    font-size: 12.5px;
+    color: var(--mid);
+    line-height: 1.4;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+  }
+  .btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s, opacity 0.2s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--teal);
+    color: white;
+  }
+  .btn-primary:hover { background: var(--teal-light); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--mid);
+    border: 2px solid var(--border);
+  }
+  .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+  /* ── Result card ── */
+  .result-section {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .result-section.active { display: block; }
+
+  .result-header {
+    background: var(--dark);
+    color: white;
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .result-icon { font-size: 36px; line-height: 1; }
+  .result-system-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.1;
+  }
+  .result-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-top: 5px;
+  }
+
+  .result-body {
+    background: white;
+    border-radius: var(--radius);
+    border: 1.5px solid var(--border);
+    padding: 22px 24px;
+    margin-bottom: 14px;
+  }
+  .result-why {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--dark);
+    margin-bottom: 16px;
+  }
+
+  .specs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .spec-item {
+    background: var(--light);
+    border-radius: 7px;
+    padding: 10px 13px;
+  }
+  .spec-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 3px;
+  }
+  .spec-value {
+    font-size: 13px;
+    color: var(--dark);
+    font-weight: 500;
+  }
+
+  .caveats {
+    background: #fff8f5;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 7px 7px 0;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--dark);
+    line-height: 1.55;
+  }
+  .caveats strong {
+    display: block;
+    color: var(--accent);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  /* ── Also consider ── */
+  .also-section { margin-bottom: 14px; }
+  .also-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 10px;
+  }
+  .also-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .also-card {
+    background: white;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+  }
+  .also-card strong { display: block; color: var(--dark); margin-bottom: 2px; font-size: 13.5px; }
+  .also-card span { color: var(--mid); font-size: 12px; line-height: 1.4; }
+
+  /* ── Footer note ── */
+  .footer-note {
+    background: var(--teal-dim);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .footer-note strong { color: var(--teal); }
+
+  .btn-restart {
+    background: var(--teal-dim);
+    color: var(--teal);
+    border: 2px solid var(--teal);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-restart:hover { background: white; }
+
+  @media (max-width: 520px) {
+    .options.cols-2 { grid-template-columns: 1fr; }
+    .specs-grid { grid-template-columns: 1fr; }
+    .also-grid { grid-template-columns: 1fr; }
+    .header { padding: 22px 20px 18px; }
+    .container { padding: 24px 16px 48px; }
+    .header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-label">DBM Microscopy Core Facility</div>
+  <h1>Which microscope do I need?</h1>
+  <p>Answer a few questions about your experiment and we'll recommend the best system for your needs.</p>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- STEP 1: Sample type -->
+  <div class="step active" id="step-1">
+    <div class="step-number">Question 1 of 6</div>
+    <div class="step-question">What kind of sample are you imaging?</div>
+    <div class="step-hint">This is the biggest single factor in system selection.</div>
+    <div class="options">
+      <div class="option" data-q="sample" data-v="monolayer" onclick="selectOption(this)">
+        <div class="option-icon">🔬</div>
+        <div class="option-text"><strong>Cells in a monolayer</strong><span>2D culture on glass or plastic — cells, slides, coverslips</span></div>
+      </div>
+      <div class="option" data-q="sample" data-v="thick" onclick="selectOption(this)">
+        <div class="option-icon">🧫</div>
+        <div class="option-text"><strong>Thick / 3D sample</strong><span>Organoids, spheroids, tissue sections, embryos (>10–15 µm)</span></div>
+      </div>
+      <div class="option" data-q="sample" data-v="slide" onclick="selectOption(this)">
+        <div class="option-icon">🔷</div>
+        <div class="option-text"><strong>Fixed slide / large area</strong><span>IHC, FISH, whole tissue section — need to scan a big region</span></div>
+      </div>
+      <div class="option" data-q="sample" data-v="live" onclick="selectOption(this)">
+        <div class="option-icon">🫀</div>
+        <div class="option-text"><strong>Live cells / dynamic process</strong><span>Time-lapse, tracking, fast events — cell viability matters</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <div></div>
+      <button class="btn btn-primary" id="next-1" onclick="nextStep(1)" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Optical sectioning -->
+  <div class="step" id="step-2">
+    <div class="step-number">Question 2 of 6</div>
+    <div class="step-question">Do you need optical sectioning (Z-stack)?</div>
+    <div class="step-hint">Optical sectioning removes out-of-focus blur from thick samples. For flat monolayers it's often unnecessary.</div>
+    <div class="options cols-2">
+      <div class="option" data-q="zsec" data-v="yes" onclick="selectOption(this)">
+        <div class="option-icon">📐</div>
+        <div class="option-text"><strong>Yes</strong><span>Need clean Z-slices, 3D reconstructions, or co-localisation across depth</span></div>
+      </div>
+      <div class="option" data-q="zsec" data-v="no" onclick="selectOption(this)">
+        <div class="option-icon">📄</div>
+        <div class="option-text"><strong>No / Not sure</strong><span>Single focal plane, presence/absence, or basic fluorescence readout</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="prevStep(2)">← Back</button>
+      <button class="btn btn-primary" id="next-2" onclick="nextStep(2)" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: Live or fixed -->
+  <div class="step" id="step-3">
+    <div class="step-number">Question 3 of 6</div>
+    <div class="step-question">Is your sample live or fixed?</div>
+    <div class="step-hint">Live imaging has different constraints — speed, phototoxicity, and environmental control all become critical.</div>
+    <div class="options cols-2">
+      <div class="option" data-q="livefixed" data-v="live" onclick="selectOption(this)">
+        <div class="option-icon">🟢</div>
+        <div class="option-text"><strong>Live</strong><span>Cells are alive — time-lapse, dynamics, or short-term imaging</span></div>
+      </div>
+      <div class="option" data-q="livefixed" data-v="fixed" onclick="selectOption(this)">
+        <div class="option-icon">🔴</div>
+        <div class="option-text"><strong>Fixed / Stained</strong><span>Paraformaldehyde, methanol, or similar — cells are not alive</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="prevStep(3)">← Back</button>
+      <button class="btn btn-primary" id="next-3" onclick="nextStep(3)" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: Resolution requirement -->
+  <div class="step" id="step-4">
+    <div class="step-number">Question 4 of 6</div>
+    <div class="step-question">What level of detail do you need?</div>
+    <div class="step-hint">Be honest here — super-resolution is powerful but comes with more prep work and imaging time.</div>
+    <div class="options">
+      <div class="option" data-q="res" data-v="standard" onclick="selectOption(this)">
+        <div class="option-icon">🔍</div>
+        <div class="option-text"><strong>Standard resolution</strong><span>Cells, nuclei, compartments — subcellular structures ≥200 nm</span></div>
+      </div>
+      <div class="option" data-q="res" data-v="superres" onclick="selectOption(this)">
+        <div class="option-icon">⚡</div>
+        <div class="option-text"><strong>Super-resolution</strong><span>Fine structures below the diffraction limit — cytoskeleton, vesicles &lt;200 nm</span></div>
+      </div>
+      <div class="option" data-q="res" data-v="unsure" onclick="selectOption(this)">
+        <div class="option-icon">🤔</div>
+        <div class="option-text"><strong>Not sure yet</strong><span>I'm not certain what I need — start with the best general option</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="prevStep(4)">← Back</button>
+      <button class="btn btn-primary" id="next-4" onclick="nextStep(4)" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: Channels -->
+  <div class="step" id="step-5">
+    <div class="step-number">Question 5 of 6</div>
+    <div class="step-question">How many fluorescence channels do you need?</div>
+    <div class="step-hint">Count each antibody, fluorescent protein, or dye as one channel. Include DAPI if you're using it.</div>
+    <div class="options cols-2">
+      <div class="option" data-q="channels" data-v="1-2" onclick="selectOption(this)">
+        <div class="option-icon">🟦</div>
+        <div class="option-text"><strong>1–2 channels</strong><span>e.g. DAPI + one marker</span></div>
+      </div>
+      <div class="option" data-q="channels" data-v="3-4" onclick="selectOption(this)">
+        <div class="option-icon">🟨</div>
+        <div class="option-text"><strong>3–4 channels</strong><span>Standard multi-label panel</span></div>
+      </div>
+      <div class="option" data-q="channels" data-v="5+" onclick="selectOption(this)">
+        <div class="option-icon">🌈</div>
+        <div class="option-text"><strong>5+ channels</strong><span>Complex panel — spectral or careful planning needed</span></div>
+      </div>
+      <div class="option" data-q="channels" data-v="bf" onclick="selectOption(this)">
+        <div class="option-icon">💡</div>
+        <div class="option-text"><strong>Brightfield only</strong><span>No fluorescence — transmission / phase / DIC</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="prevStep(5)">← Back</button>
+      <button class="btn btn-primary" id="next-5" onclick="nextStep(5)" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: Special needs -->
+  <div class="step" id="step-6">
+    <div class="step-number">Question 6 of 6</div>
+    <div class="step-question">Any special requirements?</div>
+    <div class="step-hint">Select all that apply. Skip if none.</div>
+    <div class="options">
+      <div class="option multiselect" data-q="special" data-v="automated" onclick="toggleMulti(this)">
+        <div class="option-icon">🤖</div>
+        <div class="option-text"><strong>Automated / high-content imaging</strong><span>Multi-well plate, many positions, automated focus</span></div>
+      </div>
+      <div class="option multiselect" data-q="special" data-v="photobleach" onclick="toggleMulti(this)">
+        <div class="option-icon">⚗️</div>
+        <div class="option-text"><strong>FRAP / photoactivation / ablation</strong><span>Need to bleach, kill, or activate a specific ROI</span></div>
+      </div>
+      <div class="option multiselect" data-q="special" data-v="largearea" onclick="toggleMulti(this)">
+        <div class="option-icon">🗺️</div>
+        <div class="option-text"><strong>Large area / stitching</strong><span>Need to tile a large field — tissue, whole well, etc.</span></div>
+      </div>
+      <div class="option multiselect" data-q="special" data-v="twophoton" onclick="toggleMulti(this)">
+        <div class="option-icon">🌊</div>
+        <div class="option-text"><strong>Deep tissue / near-IR / 2-photon</strong><span>Thick tissue &gt;100 µm, or 2-photon excitation needed</span></div>
+      </div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-ghost" onclick="prevStep(6)">← Back</button>
+      <button class="btn btn-primary" onclick="showResult()">See recommendation →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-section" id="result-section">
+    <div id="result-content"></div>
+    <div class="footer-note">
+      <strong>📋 Remember:</strong> This tool gives a starting point, not a final prescription. 
+      Every experiment is different — please <strong>book a project discussion</strong> with the facility team before your first session. 
+      Contact us at <strong>microscopy-dbm@unibas.ch</strong>
+    </div>
+    <button class="btn-restart" onclick="restart()">↩ Start again</button>
+  </div>
+
+</div>
+
+<script>
+const answers = {};
+const TOTAL_STEPS = 6;
+
+function selectOption(el) {
+  const q = el.dataset.q;
+  const v = el.dataset.v;
+  const siblings = el.closest('.options').querySelectorAll('.option:not(.multiselect)');
+  siblings.forEach(s => s.classList.remove('selected'));
+  el.classList.add('selected');
+  answers[q] = v;
+  const stepNum = parseInt(el.closest('.step').id.replace('step-', ''));
+  const btn = document.getElementById('next-' + stepNum);
+  if (btn) btn.disabled = false;
+}
+
+function toggleMulti(el) {
+  el.classList.toggle('selected');
+  const container = el.closest('.options');
+  const selected = [...container.querySelectorAll('.option.selected')].map(o => o.dataset.v);
+  answers['special'] = selected;
+}
+
+function nextStep(current) {
+  document.getElementById('step-' + current).classList.remove('active');
+  document.getElementById('step-' + (current + 1)).classList.add('active');
+  updateProgress(current + 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function prevStep(current) {
+  document.getElementById('step-' + current).classList.remove('active');
+  document.getElementById('step-' + (current - 1)).classList.add('active');
+  updateProgress(current - 1);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgress(step) {
+  const pct = ((step - 1) / TOTAL_STEPS) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function getRecommendation() {
+  const { sample, zsec, livefixed, res, channels, special } = answers;
+  const specialArr = Array.isArray(special) ? special : [];
+
+  // ── Two-photon / deep tissue ──
+  if (specialArr.includes('twophoton')) {
+    return {
+      icon: '🌊',
+      name: 'Nikon A1 "Jedi"',
+      tag: 'Confocal / 2-Photon',
+      why: 'You indicated a need for 2-photon excitation or deep tissue imaging. The A1 "Jedi" is the only system in the facility with 2-photon capability, making it the right choice for imaging beyond ~100 µm depth in tissue, or for experiments requiring near-IR excitation.',
+      specs: [
+        { label: 'Type', value: 'Point-scanning confocal + 2-photon' },
+        { label: 'Best for', value: 'Deep tissue, >100 µm, near-IR' },
+        { label: 'Location', value: 'Hebelstrasse' },
+        { label: 'Software', value: 'Nikon NIS' }
+      ],
+      caveat: 'Book a project discussion first — 2-photon setup requires coordination with the facility team.',
+      alsoConsider: []
+    };
+  }
+
+  // ── Slide scanner ──
+  if (sample === 'slide' && !specialArr.includes('photobleach')) {
+    return {
+      icon: '🔷',
+      name: 'Nikon Ni SlideScanner',
+      tag: 'Widefield',
+      why: 'For large fixed sections requiring a wide-area scan, the Nikon Ni SlideScanner is the most efficient option. It\'s designed for whole-slide fluorescence and brightfield (IHC/IF) imaging with automated stitching, saving you hours compared to manual tile scanning.',
+      specs: [
+        { label: 'Type', value: 'Upright widefield scanner' },
+        { label: 'Camera', value: '95B sCMOS (fluorescence) + DS-Fi3 (colour)' },
+        { label: 'Best for', value: 'Whole slide, IHC, FISH, large sections' },
+        { label: 'Location', value: 'Hebelstrasse' }
+      ],
+      caveat: 'Best for fixed, stained slides. Not suitable for live imaging or Z-stacks.',
+      alsoConsider: [
+        { name: 'Ti2 Widefield (Righty / Lefty)', why: 'If you need a Z-stack or live imaging on a large sample — note only Righty has an incubation chamber' }
+      ]
+    };
+  }
+
+  // ── Super-resolution ──
+  if (res === 'superres') {
+    return {
+      icon: '⚡',
+      name: 'Deep Thought (DeepSIM)',
+      tag: 'SIM / Super-resolution',
+      why: 'For structures below the diffraction limit (~200 nm), DeepSIM on Deep Thought provides structured illumination microscopy (SIM) with ~120 nm lateral resolution — twice the resolution of a standard confocal. It also has an NSPARC detector (available on the AxR) for photon-efficient super-resolution. For live super-res, this is much gentler than STORM/PALM-type approaches.',
+      specs: [
+        { label: 'Type', value: 'Spinning disk + SIM + NSPARC' },
+        { label: 'Resolution', value: '~120 nm lateral (SIM mode)' },
+        { label: 'Camera', value: 'Kinetix + 95B sCMOS' },
+        { label: 'Location', value: 'Hebelstrasse, ZLF 4th floor' }
+      ],
+      caveat: 'SIM requires careful sample prep — thin samples, good SNR, and minimal spherical aberration. Talk to us before planning your labelling strategy.',
+      alsoConsider: [
+        { name: 'AxR "Arrrrgh" (NSPARC)', why: 'Point-scanning with photon-counting super-resolution detector; better for single-molecule / sparse labelling' }
+      ]
+    };
+  }
+
+  // ── FRAP / photoactivation ──
+  if (specialArr.includes('photobleach')) {
+    return {
+      icon: '⚗️',
+      name: 'CSU-W1 or AxR "Arrrrgh"',
+      tag: 'Confocal',
+      why: 'FRAP, photoactivation, and ablation experiments require a targeted bleaching laser. The CSU-W1 has an ablation laser and is ideal for region-specific bleaching/killing/activation. The AxR point-scanning confocal also supports ROI-based bleaching with high flexibility, and additionally offers NSPARC and resonant scanning.',
+      specs: [
+        { label: 'CSU-W1 ablation', value: 'Dedicated ablation laser (cut, kill, bleach, activate)' },
+        { label: 'AxR bleaching', value: 'ROI bleaching, resonant scanner, NSPARC' },
+        { label: 'Location', value: 'Hebelstrasse, ZLF 4th floor' },
+        { label: 'Live support', value: 'CSU-W1: temp + CO₂ ✓; AxR: no incubation (same as Lefty)' }
+      ],
+      caveat: 'Which system is better depends on your specific protocol. A project discussion will help determine the right approach.',
+      alsoConsider: [
+        { name: 'Cresty (spinning disk)', why: 'If FRAP is not the priority but you need fast live confocal imaging' }
+      ]
+    };
+  }
+
+  // ── Automated monolayer (multi-well plate or ibidi 8-well, 2D) ──
+  if (specialArr.includes('automated') && sample === 'monolayer') {
+    return {
+      icon: '🤖',
+      name: 'Ti2 Widefield (Lefty / Righty)',
+      tag: 'Widefield',
+      why: 'For automated multi-position imaging of monolayer cells — multi-well plates, ibidi 8-well slides, dishes — the Ti2 widefield systems are the standard choice and what we use routinely. NIS-Elements handles multi-point acquisition natively. For live imaging use Righty (has incubation chamber); for fixed, either Lefty or Righty works fine.',
+      specs: [
+        { label: 'Type', value: 'Inverted widefield (Nikon Ti2)' },
+        { label: 'Formats', value: 'Multi-well plates, ibidi 8-well, slides, dishes' },
+        { label: 'Incubation', value: 'Righty only — Lefty has no environmental control' },
+        { label: 'Software', value: 'NIS-Elements: multi-point / ND Acquisition' }
+      ],
+      caveat: 'Only Righty has an incubation chamber — book Lefty for fixed samples only. If your sample is 3D (spheroids, organoids in wells) rather than a flat monolayer, you will need a spinning disk confocal for Z-stacks instead.',
+      alsoConsider: [
+        { name: 'Cresty or CSU-W1', why: 'If your "monolayer" experiment actually involves 3D structures or spheroids in wells that need Z-stacks' }
+      ]
+    };
+  }
+
+  // ── Thick/3D sample (live or fixed) needing optical sectioning ──
+  if (sample === 'thick' && zsec === 'yes') {
+    const isLive = livefixed === 'live';
+
+    // First ask: could widefield actually be enough for a quick check?
+    // (handled by zsec === 'no' branch below — if they said yes to zsec, they need confocal)
+
+    return {
+      icon: '🧫',
+      name: 'Cresty (Spinning Disk)',
+      tag: 'Spinning Disk Confocal',
+      why: isLive
+        ? 'For live imaging of thick or 3D samples — organoids, spheroids, cells in ibidi 8-well slides — Cresty is the first choice. Spinning disk confocal is faster and far gentler than point-scanning, reducing phototoxicity while still giving clean optical sectioning. Cresty uses 50 µm pinholes (250 µm spacing) which are better matched to thick samples than the CSU-W1\'s 25 µm pinholes, and has a full incubation enclosure for long-term live experiments. Plates, ibidi chambers, and dishes all load manually and work well.'
+        : 'For fixed thick or 3D samples — tissue sections, organoids, spheroids, cells in ibidi 8-well slides — Cresty is a strong first choice. Its 50 µm pinholes (250 µm spacing) give good light throughput through thick material, making it better suited to genuinely thick samples than the CSU-W1. That said, if you only need a quick check to see if your staining or reporter worked, widefield on Lefty or Righty can be sufficient and much faster to set up — confocal is not always necessary.',
+      specs: [
+        { label: 'Type', value: 'Spinning disk confocal (CrestLight V3)' },
+        { label: 'Pinholes', value: '50 µm / 250 µm spacing — optimised for thick samples' },
+        { label: 'Incubation', value: isLive ? 'Full enclosure + stage-top (LIS) ✓' : 'Available but not required for fixed' },
+        { label: 'Camera', value: 'Kinetix sCMOS (6.5 µm) + 95B' }
+      ],
+      caveat: isLive
+        ? 'All plates and chambers are loaded manually. For samples >40–50 µm, discuss with the team whether clearing or a different approach is needed.'
+        : 'If you just need to verify staining or check a reporter in a thick sample, widefield (Lefty/Righty) may be sufficient before committing to confocal time. For samples >40–50 µm consider clearing.',
+      alsoConsider: [
+        { name: 'Deep Thought (DeepSIM)', why: 'If you also need super-resolution, or want the silicone objective for thick samples' },
+        { name: 'CSU-W1', why: 'If you also need FRAP/ablation; note its 25 µm pinholes suit thinner samples better' },
+        { name: 'AxR "Arrrrgh"', why: 'For fixed samples needing spectral detection or NSPARC; no incubation chamber' },
+        ...(!isLive ? [{ name: 'Ti2 Widefield (Lefty/Righty)', why: 'For a quick staining check or reporter validation before full confocal imaging' }] : [])
+      ]
+    };
+  }
+
+  // ── Simple live monolayer, no sectioning needed ──
+  if (livefixed === 'live' && sample === 'monolayer' && zsec === 'no') {
+    return {
+      icon: '🔬',
+      name: 'Ti2 Widefield (Righty)',
+      tag: 'Widefield',
+      why: 'For live monolayer imaging without optical sectioning, widefield is the right choice — faster, cheaper, and far less phototoxic than a confocal. This applies equally to cells on glass, ibidi 8-well slides, and multi-well plates. For live imaging, Righty is the one to book — it is the only widefield Ti2 with an incubation chamber.',
+      specs: [
+        { label: 'Type', value: 'Inverted widefield (Nikon Ti2)' },
+        { label: 'Camera', value: '95B sCMOS' },
+        { label: 'Incubation', value: 'Righty only — temp + CO₂' },
+        { label: 'Software', value: 'Nikon NIS AR' }
+      ],
+      caveat: 'Only Righty has an incubation chamber — do not book Lefty for live experiments. If out-of-focus background becomes a problem, consider Cresty for optical sectioning.',
+      alsoConsider: [
+        { name: 'Cresty', why: 'If out-of-focus background is a problem or you need Z-stacks' }
+      ]
+    };
+  }
+
+  // ── Fixed monolayer, no sectioning ──
+  if (livefixed === 'fixed' && sample === 'monolayer' && zsec === 'no') {
+    return {
+      icon: '🔬',
+      name: 'Ti2 Widefield (Lefty / Righty)',
+      tag: 'Widefield',
+      why: 'Fixed monolayer cells without optical sectioning — widefield is perfectly appropriate. Fast, easy to use, and excellent for standard IF, co-localisation in flat cells, and quantitative fluorescence. Works well for cells on glass, ibidi 8-well slides, and multi-well plates. Both Lefty and Righty are fine for fixed samples. This is also the right entry point for new users.',
+      specs: [
+        { label: 'Type', value: 'Inverted widefield (Nikon Ti2)' },
+        { label: 'Camera', value: '95B sCMOS (11 µm pixels)' },
+        { label: 'Incubation', value: 'Righty only — Lefty has none (irrelevant for fixed)' },
+        { label: 'Software', value: 'Nikon NIS AR' }
+      ],
+      caveat: 'Widefield is also a valid first step for thick fixed samples when you just need to check staining or reporter expression — you don\'t always need confocal for that. If you are tiling a large area, use the Scan Large Image tool in NIS.',
+      alsoConsider: [
+        { name: 'Cresty or AxR', why: 'If you need optical sectioning or Z-stacks' },
+        { name: 'SlideScanner', why: 'If you need to image a whole tissue section' }
+      ]
+    };
+  }
+
+  // ── Large area / stitching ──
+  if (specialArr.includes('largearea') && livefixed === 'fixed') {
+    return {
+      icon: '🗺️',
+      name: 'Ti2 Widefield or SlideScanner',
+      tag: 'Widefield',
+      why: 'Large-area imaging of fixed samples is best done on widefield. The Ti2 widefield systems support "Scan Large Image" tiling in NIS-Elements. For whole glass slides, the dedicated Nikon Ni SlideScanner is more efficient. For large-area confocal tiling, Cresty or Deep Thought also support large image acquisition but take longer.',
+      specs: [
+        { label: 'SlideScanner', value: 'Best for whole slides; automated' },
+        { label: 'Ti2 tiling', value: '"Scan Large Image" in NIS-Elements' },
+        { label: 'Live tiling', value: 'Ti2 widefield or Cresty for live multi-position' },
+        { label: 'Location', value: 'Hebelstrasse' }
+      ],
+      caveat: 'Large stitched datasets can be very big — make sure you have storage space on OMERO before you start.',
+      alsoConsider: [
+        { name: 'Cresty', why: 'If you also need optical sectioning in the large tiled area' }
+      ]
+    };
+  }
+
+  // ── Brightfield only ──
+  if (channels === 'bf') {
+    return {
+      icon: '💡',
+      name: 'Ti2 Widefield (Lefty / Righty)',
+      tag: 'Widefield / Brightfield',
+      why: 'Brightfield, phase contrast, or DIC imaging is available on both Lefty and Righty. These are the simplest and most accessible systems in the facility — pick whichever is available. If you need live brightfield with environmental control, book Righty (incubation chamber) rather than Lefty.',
+      specs: [
+        { label: 'Type', value: 'Inverted widefield' },
+        { label: 'BF modes', value: 'Transmitted, Phase contrast, DIC' },
+        { label: 'Incubation', value: 'Righty only — Lefty has none' },
+        { label: 'Colour camera', value: 'Available on some systems (DS-Fi3)' }
+      ],
+      caveat: 'If you need brightfield alongside fluorescence, any Ti2 system handles both with optical configurations.',
+      alsoConsider: []
+    };
+  }
+
+  // ── Default: general confocal ──
+  return {
+    icon: '🔬',
+    name: 'Cresty (Spinning Disk)',
+    tag: 'Spinning Disk Confocal',
+    why: 'Based on your answers, a spinning disk confocal is a solid all-round choice. Cresty handles fixed and live samples, gives good optical sectioning, and is gentler and faster than a point-scanning system. It\'s the most-used confocal in the facility for good reason.',
+    specs: [
+      { label: 'Type', value: 'Spinning disk confocal (CrestLight V3)' },
+      { label: 'Camera', value: 'Kinetix + 95B sCMOS' },
+      { label: 'Incubation', value: 'Full enclosure + stage-top' },
+      { label: 'Location', value: 'Hebelstrasse ZLF, 3rd floor' }
+    ],
+    caveat: 'Come and chat with us before booking — we\'ll make sure this is really the right fit for your experiment.',
+    alsoConsider: [
+      { name: 'AxR', why: 'For more complex detection, spectral imaging, or deep samples; note no incubation chamber' }
+    ]
+  };
+}
+
+function showResult() {
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const s = document.getElementById('step-' + i);
+    if (s) s.classList.remove('active');
+  }
+  document.getElementById('progressFill').style.width = '100%';
+  const rec = getRecommendation();
+  const resultEl = document.getElementById('result-content');
+
+  const alsoHtml = rec.alsoConsider.length > 0
+    ? `<div class="also-section">
+        <div class="also-label">Also consider</div>
+        <div class="also-grid">
+          ${rec.alsoConsider.map(a => `<div class="also-card"><strong>${a.name}</strong><span>${a.why}</span></div>`).join('')}
+        </div>
+      </div>`
+    : '';
+
+  const specsHtml = rec.specs.map(s =>
+    `<div class="spec-item"><div class="spec-label">${s.label}</div><div class="spec-value">${s.value}</div></div>`
+  ).join('');
+
+  resultEl.innerHTML = `
+    <div class="result-header">
+      <div class="result-icon">${rec.icon}</div>
+      <div>
+        <div class="result-system-name">${rec.name}</div>
+        <div class="result-tag">${rec.tag}</div>
+      </div>
+    </div>
+    <div class="result-body">
+      <div class="result-why">${rec.why}</div>
+      <div class="specs-grid">${specsHtml}</div>
+      <div class="caveats"><strong>⚠ Keep in mind</strong>${rec.caveat}</div>
+    </div>
+    ${alsoHtml}
+  `;
+
+  document.getElementById('result-section').classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function restart() {
+  Object.keys(answers).forEach(k => delete answers[k]);
+  document.getElementById('result-section').classList.remove('active');
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  document.querySelectorAll('.btn-primary').forEach(b => { if (b.id && b.id.startsWith('next')) b.disabled = true; });
+  document.getElementById('step-1').classList.add('active');
+  document.getElementById('progressFill').style.width = '0%';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
